@@ -12,9 +12,10 @@
 
 如果这个项目帮到了你或你家孩子填志愿，欢迎打赏支持开源～
 
-<!-- TODO: 把打赏二维码图片放到 assets/donate-qr.png 后，删除这行注释即可 -->
 <p align="center">
-  <img src="assets/donate-qr.png" alt="打赏二维码（微信 / 支付宝）" width="220">
+  <img src="assets/donate-wechat.png" alt="微信打赏二维码" width="220">
+  &nbsp;&nbsp;
+  <img src="assets/donate-alipay.jpg" alt="支付宝打赏二维码" width="220">
   <br>
   <sub>微信 / 支付宝 扫码打赏</sub>
 </p>
