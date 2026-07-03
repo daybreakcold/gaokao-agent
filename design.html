@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>高考志愿填报规划 Agent · 设计稿</title>
+<style>
+  :root { --accent:#1d4ed8; --accent2:#0ea5e9; --bg:#eef2f7; --card:#fff;
+          --border:#e3e6ea; --muted:#6b7280; --chong:#dc2626; --wen:#16a34a;
+          --bao:#2563eb; --dian:#7c3aed; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#dfe5ec; color:#1f2328;
+         font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"PingFang SC","Microsoft YaHei",sans-serif; }
+  .canvas { max-width:1180px; margin:32px auto; padding:0 20px 60px; }
+  .canvas > h1 { font-size:20px; }
+  .canvas > p.sub { color:var(--muted); margin-top:4px; }
+  .swatches { display:flex; gap:14px; flex-wrap:wrap; margin:18px 0 26px; }
+  .sw { display:flex; align-items:center; gap:8px; font-size:12px; color:#374151; }
+  .sw i { width:22px; height:22px; border-radius:6px; display:inline-block; }
+
+  /* 设备外框 */
+  .frame { background:var(--bg); border:1px solid #cfd6df; border-radius:14px; overflow:hidden;
+           box-shadow:0 18px 50px rgba(20,40,80,.16); }
+  .bar { height:34px; background:#f0f3f7; border-bottom:1px solid var(--border); display:flex;
+         align-items:center; gap:7px; padding:0 14px; }
+  .bar i { width:11px; height:11px; border-radius:50%; background:#d2d7de; }
+  .bar i.r{background:#ff5f57;} .bar i.y{background:#febc2e;} .bar i.g{background:#28c840;}
+  .bar span { margin-left:10px; font-size:12px; color:var(--muted); }
+
+  header.app { padding:14px 22px; background:linear-gradient(90deg,var(--accent),var(--accent2)); color:#fff; }
+  header.app h2 { margin:0; font-size:17px; display:flex; align-items:center; gap:8px; }
+  header.app p { margin:3px 0 0; font-size:12px; opacity:.92; }
+
+  .layout { display:grid; grid-template-columns:300px 1fr; min-height:620px; }
+
+  /* 左侧表单 */
+  .side { background:var(--card); border-right:1px solid var(--border); padding:16px; }
+  .side h3 { margin:0 0 4px; font-size:14px; }
+  .side .tip { color:var(--muted); font-size:12px; margin:0 0 14px; }
+  .field { margin-bottom:10px; }
+  .field label { display:block; font-size:12px; color:var(--muted); margin-bottom:4px; }
+  .ip { width:100%; padding:8px 10px; border:1px solid var(--border); border-radius:8px;
+        font-size:13px; background:#fff; min-height:34px; color:#1f2328; }
+  .ip.ph { color:#aab2bd; }
+  .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+  .fillbtn { width:100%; margin-top:8px; background:var(--accent); color:#fff; border:0;
+        border-radius:8px; padding:10px; font-size:14px; }
+
+  /* 右侧对话 */
+  .chat { display:flex; flex-direction:column; }
+  .msgs { flex:1; padding:22px; overflow:hidden; }
+  .msg { max-width:680px; margin:0 auto 16px; display:flex; gap:10px; }
+  .avatar { width:30px; height:30px; border-radius:8px; flex:0 0 30px; display:flex;
+        align-items:center; justify-content:center; font-size:16px; }
+  .msg.user .avatar { background:#dbeafe; }
+  .msg.bot .avatar { background:linear-gradient(135deg,var(--accent),var(--accent2)); }
+  .bubble { background:var(--card); border:1px solid var(--border); border-radius:12px;
+        padding:12px 14px; font-size:13.5px; line-height:1.7; }
+  .msg.user .bubble { background:#eff4ff; }
+  .bubble h4 { margin:6px 0; font-size:14px; }
+  .bubble p { margin:6px 0; }
+  table { border-collapse:collapse; width:100%; margin:10px 0; }
+  th,td { border:1px solid var(--border); padding:6px 8px; font-size:12px; text-align:left; }
+  th { background:#f0f3f7; }
+  .badge { display:inline-block; color:#fff; border-radius:6px; padding:1px 9px; font-size:12px; }
+  .b-chong{background:var(--chong);} .b-wen{background:var(--wen);}
+  .b-bao{background:var(--bao);} .b-dian{background:var(--dian);}
+  .note { background:#fff7ed; border:1px solid #fed7aa; color:#9a3412; border-radius:8px;
+          padding:8px 10px; font-size:12px; margin-top:8px; }
+
+  .composer { border-top:1px solid var(--border); background:var(--card); padding:12px 22px; }
+  .composer .inner { max-width:680px; margin:0 auto; display:flex; gap:10px; }
+  .ta { flex:1; border:1px solid var(--border); border-radius:10px; padding:10px 12px;
+        font-size:13.5px; color:#aab2bd; min-height:40px; }
+  .send { background:var(--accent); color:#fff; border:0; border-radius:10px; padding:10px 20px; font-size:14px; }
+  .disc { max-width:680px; margin:6px auto 0; color:var(--muted); font-size:11px; text-align:center; }
+
+  .annot { margin-top:14px; color:var(--muted); font-size:12px; line-height:1.8; }
+  .annot b { color:#1f2328; }
+</style>
+</head>
+<body>
+<div class="canvas">
+  <h1>🎓 高考志愿填报规划 Agent · 界面设计稿</h1>
+  <p class="sub">Web 桌面端 · 1180px · 左侧考生信息表单 + 右侧对话；方案以「冲/稳/保/垫」四色分层</p>
+
+  <div class="swatches">
+    <div class="sw"><i style="background:#1d4ed8"></i>主色 #1D4ED8</div>
+    <div class="sw"><i style="background:#0ea5e9"></i>辅色 #0EA5E9</div>
+    <div class="sw"><i style="background:#dc2626"></i>冲 #DC2626</div>
+    <div class="sw"><i style="background:#16a34a"></i>稳 #16A34A</div>
+    <div class="sw"><i style="background:#2563eb"></i>保 #2563EB</div>
+    <div class="sw"><i style="background:#7c3aed"></i>垫 #7C3AED</div>
+  </div>
+
+  <div class="frame">
+    <div class="bar"><i class="r"></i><i class="y"></i><i class="g"></i><span>127.0.0.1:8010 — 高考志愿填报规划 Agent</span></div>
+    <header class="app">
+      <h2>🎓 高考志愿填报规划 Agent</h2>
+      <p>冲 / 稳 / 保 / 垫 分层方案 · 以位次为核心 · 数据驱动、不承诺录取 · 模型：DeepSeek V4</p>
+    </header>
+
+    <div class="layout">
+      <!-- 左侧表单 -->
+      <aside class="side">
+        <h3>考生信息</h3>
+        <p class="tip">填好后点「整理并发送」，自动拼成规范输入。</p>
+        <div class="field"><label>省份</label><div class="ip">江苏</div></div>
+        <div class="grid2">
+          <div class="field"><label>高考年份</label><div class="ip">2025</div></div>
+          <div class="field"><label>批次</label><div class="ip">本科批</div></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>总分</label><div class="ip">628</div></div>
+          <div class="field"><label>全省位次</label><div class="ip">9800</div></div>
+        </div>
+        <div class="field"><label>选科组合</label><div class="ip">物理+化学+生物</div></div>
+        <div class="field"><label>想去的城市</label><div class="ip">南京 / 苏州</div></div>
+        <div class="field"><label>想学的专业</label><div class="ip">计算机 / 电子信息</div></div>
+        <div class="field"><label>不能接受的专业</label><div class="ip ph">如 化学、生物</div></div>
+        <div class="grid2">
+          <div class="field"><label>服从调剂</label><div class="ip">是</div></div>
+          <div class="field"><label>家庭预算</label><div class="ip">公办为主</div></div>
+        </div>
+        <div class="grid2">
+          <div class="field"><label>中外合作</label><div class="ip ph">未定</div></div>
+          <div class="field"><label>民办本科</label><div class="ip ph">未定</div></div>
+        </div>
+        <div class="field"><label>更看重</label><div class="ip">就业</div></div>
+        <div class="field"><label>风险偏好</label><div class="ip">平衡型</div></div>
+        <button class="fillbtn">整理并发送</button>
+      </aside>
+
+      <!-- 右侧对话 -->
+      <section class="chat">
+        <div class="msgs">
+          <div class="msg bot">
+            <div class="avatar">🎓</div>
+            <div class="bubble">我可以帮你做一版高考志愿填报方案。请先提供：省份、年份、总分、<b>全省位次</b>、选科组合、批次、城市与专业偏好、是否服从调剂、家庭预算、未来更看重就业还是考研。拿到这些信息后，我会按<b>冲、稳、保、垫</b>给你做完整方案。</div>
+          </div>
+          <div class="msg user">
+            <div class="avatar">🧑</div>
+            <div class="bubble">以下是我的考生信息：江苏 / 2025 / 628分 / 位次9800 / 物化生 / 想去南京苏州学计算机 / 服从调剂 / 平衡型</div>
+          </div>
+          <div class="msg bot">
+            <div class="avatar">🎓</div>
+            <div class="bubble">
+              <h4>二、填报策略建议</h4>
+              <p>推荐策略：<b>平衡型</b> · 冲 20% / 稳 45% / 保 25% / 垫 10%。以位次 9800 为核心匹配。</p>
+              <h4>三、志愿方案总表（示例片段）</h4>
+              <table>
+                <tr><th>档位</th><th>院校</th><th>城市</th><th>专业组</th><th>风险等级</th></tr>
+                <tr><td><span class="badge b-chong">冲</span></td><td>A 大学</td><td>南京</td><td>计算机类（含调剂）</td><td>中高</td></tr>
+                <tr><td><span class="badge b-wen">稳</span></td><td>B 大学</td><td>苏州</td><td>电子信息类</td><td>中</td></tr>
+                <tr><td><span class="badge b-bao">保</span></td><td>C 大学</td><td>南京</td><td>软件工程</td><td>中低</td></tr>
+                <tr><td><span class="badge b-dian">垫</span></td><td>D 大学</td><td>省内</td><td>计算机类</td><td>低</td></tr>
+              </table>
+              <div class="note">⚠️ 示意数据。最终须以江苏省考试院官方招生计划、专业组代码与投档结果为准，本工具不承诺录取。</div>
+            </div>
+          </div>
+        </div>
+        <div class="composer">
+          <div class="inner">
+            <div class="ta">补充信息或提问，Enter 发送，Shift+Enter 换行...</div>
+            <button class="send">发送</button>
+          </div>
+          <div class="disc">本工具仅提供参考建议，不构成录取承诺。最终须以省考试院官方招生计划、专业组代码与投档结果为准。</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="annot">
+    <b>设计说明</b><br>
+    1. <b>顶部渐变条</b>用主色→辅色，传达「规划/可信」气质；副标题强调“以位次为核心、不承诺录取”。<br>
+    2. <b>左侧表单</b>把 13 项必填信息结构化，降低用户表达成本；点「整理并发送」自动拼成规范输入。<br>
+    3. <b>右侧对话</b>为多轮流式聊天；方案用 <span class="badge b-chong">冲</span><span class="badge b-wen">稳</span><span class="badge b-bao">保</span><span class="badge b-dian">垫</span> 四色徽标分层，配合风险等级列。<br>
+    4. <b>合规提示</b>固定显示在输入区下方与方案末尾，呼应系统提示词第 12、20 节。<br>
+    5. 移动端（&lt;820px）左侧表单折叠，仅保留对话与一个「填写考生信息」入口。
+  </div>
+</div>
+</body>
+</html>
