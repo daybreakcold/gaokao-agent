@@ -4,7 +4,7 @@
 
 > ⚠️ 本工具仅提供参考建议，**不承诺录取结果**。最终须以考生所在省考试院官方招生计划、院校专业组代码、选科要求与实际投档结果为准。
 
-📖 详细文档：[启动文档](docs/启动文档.md)（本地运行、常见问题） · [部署文档](docs/部署文档.md)（systemd / Nginx / Docker 服务器部署）
+📖 详细文档：[启动文档](docs/启动文档.md)（本地运行、常见问题） · [部署文档](docs/部署文档.md)（systemd / Nginx / Docker 服务器部署） · [Skill 使用文档](docs/Skill使用文档.md)（Claude Code Skill 版，免 Key 免部署）
 
 ---
 
@@ -35,6 +35,33 @@
 | `.env.example` | 环境变量模板，复制为 `.env` 后填入真实 Key |
 | `.env` | 环境变量，存放 API Key（已被 `.gitignore` 忽略，**勿提交公开仓库**） |
 | `design.pen` | 界面设计稿（用 Pencil 打开查看） |
+
+---
+
+## 🧩 Claude Code Skill 版（无需 API Key）
+
+本项目已打包为 Claude Code skill（`.claude/skills/gaokao-planner/`），在本仓库目录里打开 Claude Code 即可直接使用：
+
+```
+/gaokao-planner 江苏 2026 物化生 628分 位次9800 想去南京学计算机 服从调剂
+```
+
+也可以不带参数直接 `/gaokao-planner`，Agent 会先列出需要收集的信息。联网查询招生计划、投档线等最新数据由 Claude Code 内置的 WebSearch / WebFetch 完成，**不需要 DeepSeek / Tavily Key，也不用启动 Python 服务**。
+
+想在任意目录使用，把 skill 复制到个人目录即可：
+
+```bash
+cp -R .claude/skills/gaokao-planner ~/.claude/skills/
+```
+
+Skill 结构：
+- `SKILL.md` — 角色、硬性规则、四步工作流程（收集校验 → 联网检索 → 分析分档 → 结构化输出）
+- `references/analysis-rules.md` — 详细分析规则（数据优先级、校验、冲稳保垫策略、院校/专业/城市筛选、风险等级、评分模型、特殊场景）
+- `references/output-format.md` — 输出格式规范与合规话术
+
+参考文件按需加载，规则内容与 `system_prompt.md` 保持同源（由其拆分而来）。
+
+📖 详细说明（安装、自动触发、示例、常见问题）见 [Skill 使用文档](docs/Skill使用文档.md)。
 
 ---
 
